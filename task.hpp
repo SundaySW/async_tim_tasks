@@ -8,12 +8,13 @@ namespace async_tim_task{
 
 class AsyncTask {
 public:
-    AsyncTask() = delete;
+    AsyncTask() = default;
 
     explicit AsyncTask(CallBackT&& handler, DelayT delay, bool suspended = false)
         : handler_(std::move(handler))
         , interval_(delay)
     {
+        inited_ = true;
         if(!suspended)
             Enable();
     }
@@ -45,10 +46,19 @@ public:
     void Disable(){
         disabled_ = true;
     }
+
+    bool IsInited(){
+        return inited_;
+    }
+
+    void Reset(){
+        inited_ = true;
+    }
 private:
     uint32_t count_{0};
     uint32_t interval_{0};
     uint32_t kTick_freq_ = 1;
+    bool inited_ {false};
     bool disabled_ {true};
     bool has_pending_ {false};
     CallBackT handler_;

@@ -26,7 +26,7 @@ struct TaskPool{
     int PlaceToPool(CallBackT&& f, DelayT d, bool suspended = false){
         int idx = -1;
         for(std::size_t i = 0; i < pool_size; i++){
-            if(!pool_[i].has_value()){
+            if(!pool_[i].IsInited()){
                 pool_[i] = AsyncTask{std::forward<CallBackT>(f), d, suspended};
                 idx = i;
                 break;
@@ -38,34 +38,36 @@ struct TaskPool{
     bool RemoveFromPool(unsigned short idx){
         if(idx >= pool_size)
             return false;
-        pool_[idx].reset();
+        pool_[idx].Reset();
         return true;
     }
 
     bool StopTask(unsigned short idx){
-        pool_[idx].value().Disable();
+        if(idx >= pool_size)
+            return false;
+        pool_[idx].Disable();
         return true;
     }
 
     bool ResumeTask(unsigned short idx){
-        pool_[idx].value().Enable();
+        if(idx >= pool_size)
+            return false;
+        pool_[idx].Enable();
         return true;
     }
 
     void OnTimTick(){
-        for(auto& tim : pool_)
-            if(tim.has_value())
-                tim.value().TickHandle();
+        for(auto& task : pool_)
+            task.TickHandle();
     }
 
     void Poll(){
-        for(auto& tim : pool_)
-            if(tim.has_value())
-                tim.value().Poll();
+        for(auto& task : pool_)
+            task.Poll();
     }
 private:
     TaskPool() = default;
-    std::array<std::optional<AsyncTask>, pool_size> pool_;
+    std::array<AsyncTask, pool_size> pool_;
 };
 
 }// namespace async_tim_task
