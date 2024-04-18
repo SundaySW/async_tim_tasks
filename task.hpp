@@ -10,11 +10,12 @@ class AsyncTask {
 public:
     AsyncTask() = delete;
 
-    explicit AsyncTask(CallBackT&& handler, DelayT delay)
+    explicit AsyncTask(CallBackT&& handler, DelayT delay, bool suspended = false)
         : handler_(std::move(handler))
         , interval_(delay)
     {
-        Enable();
+        if(!suspended)
+            Enable();
     }
 
     void TickHandle(){

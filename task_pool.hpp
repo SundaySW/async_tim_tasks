@@ -20,14 +20,14 @@ struct TaskPool{
 
     static TaskPoolRef GetPool(){
         static TaskPool task_pool{};
-        return (TaskPoolRef)task_pool;
+        return task_pool;
     }
 
-    int PlaceToPool(CallBackT&& f, DelayT d){
+    int PlaceToPool(CallBackT&& f, DelayT d, bool suspended = false){
         int idx = -1;
         for(std::size_t i = 0; i < pool_size; i++){
             if(!pool_[i].has_value()){
-                pool_[i] = AsyncTask{std::forward<CallBackT>(f), d};
+                pool_[i] = AsyncTask{std::forward<CallBackT>(f), d, suspended};
                 idx = i;
                 break;
             }
@@ -42,8 +42,13 @@ struct TaskPool{
         return true;
     }
 
-    bool StopTim(unsigned short idx){
+    bool StopTask(unsigned short idx){
         pool_[idx].value().Disable();
+        return true;
+    }
+
+    bool ResumeTask(unsigned short idx){
+        pool_[idx].value().Enable();
         return true;
     }
 
