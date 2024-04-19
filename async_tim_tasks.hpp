@@ -15,7 +15,10 @@ TaskPoolRef GetTaskPool();
 #define TASK_POOL_POLL()  async_tim_task::GetTaskPool().Poll()
 
 #define PLACE_ASYNC_TASK(callback, Hz)  async_tim_task::GetTaskPool().PlaceToPool(callback, (Hz_to_delay(Hz) ? Hz_to_delay(Hz) : 1))
+#define PLACE_ASYNC_QUICKEST(callback)  async_tim_task::GetTaskPool().PlaceToPool(callback)
+
 #define PLACE_ASYNC_TASK_SUSPENDED(callback, Hz)  async_tim_task::GetTaskPool().PlaceToPool(callback, (Hz_to_delay(Hz) ? Hz_to_delay(Hz) : 1), true)
+#define PLACE_ASYNC_TASK_SUSPENDED_QUICKEST(callback)  async_tim_task::GetTaskPool().PlaceToPool(callback, true)
 
 #define REMOVE_TASK(n)  async_tim_task::GetTaskPool().RemoveFromPool(n)
 #define STOP_TASK(n)  async_tim_task::GetTaskPool().StopTask(n)
@@ -28,4 +31,3 @@ TaskPoolRef GetTaskPool();
  */
 
 }// namespace async_tim_task
-

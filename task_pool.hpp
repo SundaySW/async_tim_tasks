@@ -23,12 +23,13 @@ struct TaskPool{
         return task_pool;
     }
 
-    int PlaceToPool(CallBackT&& f, DelayT d, bool suspended = false){
+    int PlaceToPool(CallBackT&& f, DelayT delay = 1, bool suspended = false){
         int idx = -1;
         for(std::size_t i = 0; i < pool_size; i++){
             if(!pool_[i].IsInited()){
-                pool_[i] = AsyncTask{std::forward<CallBackT>(f), d, suspended};
+                pool_[i] = AsyncTask{std::forward<CallBackT>(f), delay, suspended};
                 idx = i;
+                current_pool_size_++;
                 break;
             }
         }
@@ -39,6 +40,7 @@ struct TaskPool{
         if(idx >= pool_size)
             return false;
         pool_[idx].Reset();
+        current_pool_size_--;
         return true;
     }
 
@@ -57,15 +59,16 @@ struct TaskPool{
     }
 
     void OnTimTick(){
-        for(auto& task : pool_)
-            task.TickHandle();
+        for(std::size_t i = 0; i < current_pool_size_; i++)
+            pool_[i].TickHandle();
     }
 
     void Poll(){
-        for(auto& task : pool_)
-            task.Poll();
+        for(std::size_t i = 0; i < current_pool_size_; i++)
+            pool_[i].Poll();
     }
 private:
+    std::size_t current_pool_size_ {0};
     TaskPool() = default;
     std::array<AsyncTask, pool_size> pool_;
 };

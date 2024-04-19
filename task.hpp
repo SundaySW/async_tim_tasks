@@ -6,15 +6,17 @@
 
 namespace async_tim_task{
 
+#define kTick_freq_ (1)
+
 class AsyncTask {
 public:
     AsyncTask() = default;
 
     explicit AsyncTask(CallBackT&& handler, DelayT delay, bool suspended = false)
-        : handler_(std::move(handler))
-        , interval_(delay)
+            : handler_(std::move(handler))
+            , interval_(delay)
+            , inited_(true)
     {
-        inited_ = true;
         if(!suspended)
             Enable();
     }
@@ -22,16 +24,16 @@ public:
     void TickHandle(){
         if(disabled_ || has_pending_)
             return;
-        count_ += kTick_freq_;
-        if(count_ >= interval_)
-            has_pending_ = true;
+        else
+            count_ += kTick_freq_;
     }
 
     void Poll(){
-        if(has_pending_){
+        if(!disabled_ && count_ >= interval_){
+            has_pending_ = true;
             handler_();
-            has_pending_ = false;
             count_ = 0;
+            has_pending_ = false;
         }
     }
 
@@ -47,17 +49,17 @@ public:
         disabled_ = true;
     }
 
-    bool IsInited(){
+    [[nodiscard]] bool IsInited() const{
         return inited_;
     }
 
     void Reset(){
+        disabled_ = true;
         inited_ = true;
     }
 private:
-    uint32_t count_{0};
-    uint32_t interval_{0};
-    uint32_t kTick_freq_ = 1;
+    std::size_t count_{0};
+    std::size_t interval_{0};
     bool inited_ {false};
     bool disabled_ {true};
     bool has_pending_ {false};
