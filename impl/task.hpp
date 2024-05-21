@@ -2,38 +2,32 @@
 
 #include <functional>
 
-#include "fwd.hpp"
-
-namespace async_tim_task{
+namespace async_tim_task_impl{
 
 #define kTick_freq_ (1)
 
 class AsyncTask {
 public:
+    using CallBackT = std::function<void()>;
     AsyncTask() = default;
 
-    explicit AsyncTask(CallBackT&& handler, DelayT delay, bool suspended = false)
-            : handler_(std::move(handler))
-            , interval_(delay)
-            , inited_(true)
+    explicit AsyncTask(CallBackT&& handler, std::size_t delay, bool suspended = false)
+        : handler_(std::move(handler))
+        , interval_(delay)
+        , inited_(true)
     {
         if(!suspended)
             Enable();
     }
 
-    void TickHandle(){
-        if(disabled_ || has_pending_)
-            return;
-        else
-            count_ += kTick_freq_;
+    [[gnu::always_inline]] void TickHandle(){
+        count_ += kTick_freq_;
     }
 
-    void Poll(){
+    [[gnu::always_inline]] void Poll(){
         if(!disabled_ && count_ >= interval_){
-            has_pending_ = true;
             handler_();
             count_ = 0;
-            has_pending_ = false;
         }
     }
 
@@ -62,7 +56,6 @@ private:
     std::size_t interval_{0};
     bool inited_ {false};
     bool disabled_ {true};
-    bool has_pending_ {false};
     CallBackT handler_;
 };
 
