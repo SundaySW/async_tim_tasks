@@ -7,17 +7,20 @@
        place macro TASK_POOL_ON_TIM() in interrupt handler for desired timer
        place macro TASK_POOL_POLL() im main loop
        place macro TASK_POOL_SET_UP (
-           1st @arg -> converting Hz to delay lambda [](float arg){return uint32_t delay;}
-           2nd @arg -> starting lambda []{StartTim(tim);}
+           1st @arg -> converting Hz to delay lambda [](float arg){... return uint32_t delay;}
+           2nd @arg -> starting lambda []{ StartTim(tim); }
            )
       to place a task:
-      type macro PLACE_ASYNC_TASK(
-            1st @arg -> lambda [&]{} with a task
-            2nd @arg -> time in Hz for this task to repeat
-        ) it has a @retval with task N in pool(std::size_t)
-      or to put max frequently task use PLACE_ASYNC_QUICKEST(
-            @arg -> lambda [&]{} with a task
-        ) it has a @retval with task N in pool(std::size_t)
+          type macro PLACE_ASYNC_TASK(
+                1st @arg -> lambda [](void* self_ptr_as_context){static_cast<SelfT*>(context)->...} with a task
+                2nd @arg -> time in Hz for this task to repeat
+            )
+            @retval task N in pool(std::size_t)
+
+          to put max frequently task use PLACE_ASYNC_QUICKEST(
+                @arg -> lambda [](void* self_ptr_as_context){static_cast<SelfT*>(context)->...} with a task
+            )
+            @retval task N in pool(std::size_t)
 
       to stop a task:
       use macro STOP_TASK(
@@ -28,6 +31,8 @@
       use macro RESUME_TASK(
             @arg -> task N which was a retval for PLACE_ASYNC_TASK_...
           )
+
+      @param pool_size - default to 10 in impl/task_pool.hpp
 */
 
 namespace async_tim_task{

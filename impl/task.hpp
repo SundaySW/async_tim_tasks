@@ -1,18 +1,24 @@
 #pragma once
 
+#include <cstdint>
 #include <functional>
+
+#include "embedded_hw_utils/utils/task_callback.hpp"
+
+namespace task{
+    using CB = CallBack<>;
+}
 
 namespace async_tim_task_impl{
 
-#define kTick_freq_ (1)
+constexpr std::size_t kTick_freq_ = 1;
 
 class AsyncTask {
 public:
-    using CallBackT = std::function<void()>;
     AsyncTask() = default;
 
-    explicit AsyncTask(CallBackT&& handler, std::size_t delay, bool suspended = false)
-        : handler_(std::move(handler))
+    explicit AsyncTask(task::CB&& cb, std::size_t delay, bool suspended = false)
+        : handler_(cb)
         , interval_(delay)
         , inited_(true)
     {
@@ -56,7 +62,7 @@ private:
     std::size_t interval_{0};
     bool inited_ {false};
     bool disabled_ {true};
-    CallBackT handler_;
+    task::CB handler_;
 };
 
 }// namespace async_tim_task

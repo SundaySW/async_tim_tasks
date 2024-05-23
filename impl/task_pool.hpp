@@ -3,14 +3,14 @@
 #include <optional>
 
 #include "async_tim_tasks/impl/task.hpp"
+#include "async_tim_tasks/async_tim_tasks.hpp"
 
 namespace async_tim_task_impl{
 
-const std::size_t pool_size = 10;
+constexpr std::size_t k_pool_size = 10;
 
 struct TaskPool{
-    using CallBackT = std::function<void()>;
-    using ConverterFt = std::function<uint32_t(float)>;
+    using ConverterFt = uint32_t(*)(float);
     ~TaskPool() = default;
     TaskPool(TaskPool&) = delete;
     TaskPool(TaskPool&&) = delete;
@@ -23,15 +23,16 @@ struct TaskPool{
     }
 
     void SetUp(ConverterFt converter, const std::function<void()>& starter){
-        converter_ = std::move(converter);
+        converter_ = converter;
         starter();
     }
 
-    int PlaceToPool(CallBackT&& f, float Hz = UINT32_MAX, bool suspended = false){
+    int PlaceToPool(task::CB&& cb, float Hz = UINT32_MAX, bool suspended = false){
+        assert(converter_ != nullptr);
         int idx = -1;
-        for(std::size_t i = 0; i < pool_size; i++){
+        for(std::size_t i = 0; i < k_pool_size; i++){
             if(!pool_[i].IsInited()){
-                pool_[i] = AsyncTask{std::forward<CallBackT>(f), converter_(Hz), suspended};
+                pool_[i] = AsyncTask{std::forward<task::CB>(cb), converter_(Hz), suspended};
                 idx = i;
                 current_pool_size_++;
                 break;
@@ -41,7 +42,7 @@ struct TaskPool{
     }
 
     bool RemoveFromPool(unsigned short idx){
-        if(idx >= pool_size)
+        if(idx >= k_pool_size)
             return false;
         pool_[idx].Reset();
         current_pool_size_--;
@@ -49,14 +50,14 @@ struct TaskPool{
     }
 
     bool StopTask(unsigned short idx){
-        if(idx >= pool_size)
+        if(idx >= k_pool_size)
             return false;
         pool_[idx].Disable();
         return true;
     }
 
     bool ResumeTask(unsigned short idx){
-        if(idx >= pool_size)
+        if(idx >= k_pool_size)
             return false;
         pool_[idx].Enable();
         return true;
@@ -74,7 +75,7 @@ struct TaskPool{
 private:
     std::size_t current_pool_size_ {0};
     TaskPool() = default;
-    std::array<AsyncTask, pool_size> pool_;
+    std::array<AsyncTask, k_pool_size> pool_;
     ConverterFt converter_;
 };
 
