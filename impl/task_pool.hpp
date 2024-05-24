@@ -27,12 +27,12 @@ struct TaskPool{
         starter();
     }
 
-    int PlaceToPool(task::CB&& cb, float Hz = UINT32_MAX, bool suspended = false){
+    int PlaceToPool(CallBackT&& cb, float Hz = UINT32_MAX, bool suspended = false){
         assert(converter_ != nullptr);
         int idx = -1;
         for(std::size_t i = 0; i < k_pool_size; i++){
             if(!pool_[i].IsInited()){
-                pool_[i] = AsyncTask{std::forward<task::CB>(cb), converter_(Hz), suspended};
+                pool_[i] = AsyncTask{std::forward<CallBackT>(cb), converter_(Hz), suspended};
                 idx = i;
                 current_pool_size_++;
                 break;

@@ -2,22 +2,21 @@
 
 #include <cstdint>
 #include <functional>
+#include <span>
 
 #include "embedded_hw_utils/utils/task_callback.hpp"
 
-namespace task{
-    using CB = CallBack<>;
-}
-
 namespace async_tim_task_impl{
+
+using CallBackT = utils::task::CallBack<>;
 
 constexpr std::size_t kTick_freq_ = 1;
 
-class AsyncTask {
+class AsyncTask{
 public:
     AsyncTask() = default;
 
-    explicit AsyncTask(task::CB&& cb, std::size_t delay, bool suspended = false)
+    explicit AsyncTask(CallBackT&& cb, std::size_t delay, bool suspended = false)
         : handler_(cb)
         , interval_(delay)
         , inited_(true)
@@ -62,7 +61,7 @@ private:
     std::size_t interval_{0};
     bool inited_ {false};
     bool disabled_ {true};
-    task::CB handler_;
+    CallBackT handler_;
 };
 
 }// namespace async_tim_task
