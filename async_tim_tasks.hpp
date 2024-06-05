@@ -12,13 +12,13 @@
            )
       to place a task:
           type macro PLACE_ASYNC_TASK(
-                1st @param lambda -> [](void* self_ptr_as_context){static_cast<SelfT*>(context)->...}
+                1st @param expression -> expression in braces. use @var self {self->...}
                 2nd @param float -> time in Hz for this task to repeat
             )
             @retval task N in pool(std::size_t)
 
           to put max frequently task use PLACE_ASYNC_QUICKEST(
-                @param lambda -> [](void* self_ptr_as_context){static_cast<SelfT*>(context)->...}
+                1st @param expression -> expression in braces. use @var self {self->...}
             )
             @retval task N in pool(std::size_t)
 
@@ -42,20 +42,36 @@ namespace async_tim_task{
 #define ASYNC_TASKS_ON_TIM()  async_tim_task_impl::TaskPool::GetPool().OnTimTick()
 #define ASYNC_TASKS_POLL()  async_tim_task_impl::TaskPool::GetPool().Poll()
 
-#define PLACE_ASYNC_TASK(lambda, Hz)  \
-                    async_tim_task_impl::TaskPool::GetPool().PlaceToPool({this, lambda}, Hz)
+#define PLACE_ASYNC_TASK(expr, Hz)  \
+    async_tim_task_impl::TaskPool::GetPool().PlaceToPool(async_tim_task_impl::CallBackT(this, [](void* context){    \
+            auto self = static_cast<decltype(this)>(context);                                                       \
+            expr;                                                                                                   \
+        }                                                                                                           \
+    ), Hz)
 
-#define PLACE_ASYNC_TASK_static(lambda, Hz)  \
-                    async_tim_task_impl::TaskPool::GetPool().PlaceToPool({lambda}, Hz)
+#define PLACE_ASYNC_TASK_static(expr, Hz)  \
+        async_tim_task_impl::TaskPool::GetPool().PlaceToPool(async_tim_task_impl::CallBackT([](void* context)expr), Hz)
 
-#define PLACE_ASYNC_QUICKEST(lambda) \
-                    async_tim_task_impl::TaskPool::GetPool().PlaceToPool({this, lambda})
+#define PLACE_ASYNC_QUICKEST(expr) \
+    async_tim_task_impl::TaskPool::GetPool().PlaceToPool(async_tim_task_impl::CallBackT(this, [](void* context){    \
+            auto self = static_cast<decltype(this)>(context);                                                       \
+            expr;                                                                                                   \
+        }                                                                                                           \
+    ))
 
-#define PLACE_ASYNC_SUSPENDED(lambda, Hz)  \
-                    async_tim_task_impl::TaskPool::GetPool().PlaceToPool({this, lambda}, Hz, true)
+#define PLACE_ASYNC_SUSPENDED(expr, Hz)  \
+    async_tim_task_impl::TaskPool::GetPool().PlaceToPool(async_tim_task_impl::CallBackT(this, [](void* context){    \
+            auto self = static_cast<decltype(this)>(context);                                                       \
+            expr;                                                                                                   \
+        }                                                                                                           \
+    ), Hz, true)
 
-#define PLACE_ASYNC_SUSPENDED_QUICKEST(lambda)  \
-                    async_tim_task_impl::TaskPool::GetPool().PlaceToPool({this, lambda}, true)
+#define PLACE_ASYNC_SUSPENDED_QUICKEST(expr)  \
+    async_tim_task_impl::TaskPool::GetPool().PlaceToPool(async_tim_task_impl::CallBackT(this, [](void* context){    \
+            auto self = static_cast<decltype(this)>(context);                                                       \
+            expr;                                                                                                   \
+        }                                                                                                           \
+    ), true)
 
 #define REMOVE_ASYNC_TASK(n)  async_tim_task_impl::TaskPool::GetPool().RemoveFromPool(n)
 #define STOP_ASYNC_TASK(n)  async_tim_task_impl::TaskPool::GetPool().StopTask(n)

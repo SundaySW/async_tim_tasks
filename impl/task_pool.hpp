@@ -7,7 +7,7 @@
 
 namespace async_tim_task_impl{
 
-constexpr std::size_t k_pool_size = 10;
+constexpr std::size_t k_pool_size = 20;
 
 struct TaskPool{
     using ConverterFt = uint32_t(*)(float);
