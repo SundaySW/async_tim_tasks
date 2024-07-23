@@ -7,7 +7,7 @@
 
 namespace async_tim_task_impl{
 
-constexpr std::size_t k_pool_size = 20;
+constexpr std::size_t k_pool_size = 30;
 
 struct TaskPool{
     using ConverterFt = uint32_t(*)(float);
@@ -27,7 +27,7 @@ struct TaskPool{
         starter();
     }
 
-    int PlaceToPool(CallBackT&& cb, float Hz = UINT32_MAX, bool suspended = false){
+    constexpr int PlaceToPool(CallBackT&& cb, float Hz = UINT32_MAX, bool suspended = false){
         assert(converter_ != nullptr);
         int idx = -1;
         for(std::size_t i = 0; i < k_pool_size; i++){
@@ -73,10 +73,10 @@ struct TaskPool{
             pool_[i].Poll();
     }
 private:
-    std::size_t current_pool_size_ {0};
     TaskPool() = default;
+    std::size_t current_pool_size_ {0};
     std::array<AsyncTask, k_pool_size> pool_;
-    ConverterFt converter_;
+    ConverterFt converter_{};
 };
 
 }// namespace async_tim_task
